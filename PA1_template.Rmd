@@ -7,19 +7,75 @@ output:
 
 
 ## Loading and preprocessing the data
-
-
+```{r loadprocess}
+library(tidyverse)
+library(lattice)
+options(scipen = 999)
+data <- as.data.frame(read.csv("activity.csv", header = T, sep = ",", na.strings = "NA"))
+data$date <- as.Date(data$date)
+```
 
 ## What is mean total number of steps taken per day?
+```{r q1}
+data_nona <- na.omit(data)
+#aggregate(data_nona$steps, by = list(date = data_nona$date), FUN = mean)
+tot_steps <- aggregate(data_nona$steps, by = list(date = data_nona$date), FUN = sum)
+hist(tot_steps$x, pch = 20, xlab = "Total Steps", ylab = "Frequency", main = "Frequency of Daily Steps")
 
-
+p50 <- mean(tot_steps$x)
+med <- median(tot_steps$x)
+```
+The mean and median total number of steps taken per day are `r p50` and `r med`, repsectively. 
 
 ## What is the average daily activity pattern?
-
+``` {r q2}
+avg_steps <- aggregate(data_nona$steps, by = list(date = data_nona$date, interv = data_nona$interval),
+     FUN = mean)
+plot(avg_steps$interv, avg_steps$x, type = "l", main = "Average # of Steps Taken, Avg. Across All Days", 
+     ylab = "Avg. Steps", xlab = "5-Minute interval")
+max_avg <- max(avg_steps$x)
+max_avg <- avg_steps[which(avg_steps$x == max_avg ), ]
+```
+The 5-minute interval, on average across all the days in the dataset, containing the maximum number
+of steps is `r max_avg$interv`. 
 
 
 ## Imputing missing values
+```{r q3}
+na_rows <- nrow(data[which(is.na(data$steps) == T), ])
 
+#Fill in missing values: method = fill in NAs with mean (chosen because mean/median were so similar)
+data_fill_na <- data
+data_fill_na[is.na(data_fill_na$steps), 1] <- p50
+
+#Calculate mean/median of total number of steps taken per day and make histogram 
+tot_steps2 <- aggregate(data_fill_na$steps, by = list(date = data_fill_na$date), FUN = sum)
+hist(tot_steps2$x, pch = 20, xlab = "Total Steps", ylab = "Frequency", main = "Frequency of Daily Steps")
+
+p50_2 <- mean(tot_steps2$x)
+med_2 <- median(tot_steps2$x)
+```
+There are `r na_rows` with missing values. These values differ quite a lot. The mean is much higher, 
+but the median is not too different. Neglecting the NA values generates a bimodal distribution with 
+a huge variance. 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r q4}
+data_fill_na$dow <- weekdays(data_fill_na$date)
+data_fill_na$week <- 0
+data_fill_na$week[which(data_fill_na$dow %in% c("Saturday", "Sunday"))] <- 1
+data_fill_na$week <- factor(data_fill_na$week, labels = c("Weekday", "Weekend"))
+
+avg_steps2 <- aggregate(data_fill_na$steps, by = list(interv = data_fill_na$interval, wk = 
+              data_fill_na$week),FUN = mean)
+
+avg_steps2 <- as.data.frame(avg_steps2)
+as2_weekday <- avg_steps2[which(avg_steps2$wk == "Weekday"), ]
+as2_weekend <- avg_steps2[which(avg_steps2$wk == "Weekend"), ]
+
+par(mfrow = c(2,1))
+plot(as2_weekday$interv, as2_weekday$x, type = "l", main = "Weekday", ylab = "Avg. Steps", xlab = "")
+plot(as2_weekend$interv, as2_weekend$x, type = "l", main = "Weekend", ylab = "Avg. Steps", xlab = "5-Minute interval")
+
+```
