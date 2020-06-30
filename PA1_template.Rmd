@@ -79,3 +79,4 @@ plot(as2_weekday$interv, as2_weekday$x, type = "l", main = "Weekday", ylab = "Av
 plot(as2_weekend$interv, as2_weekend$x, type = "l", main = "Weekend", ylab = "Avg. Steps", xlab = "5-Minute interval")
 
 ```
+There are differences between average steps during the day for weekdays versus weekends. First, note that we do not see avg. steps increase until later (perhaps respondents are sleeping in). Second, avg. steps taper off later during tegh weekend compared to the weekdays (again, perhaps respondents stay up later). Additionally, note that for the weekend, the average number of steps taken during the 5-minute intervals is more consistent throughout compared to the weekdays. Perhaps this is because during the week, respondents are working and naturally walk less. 
